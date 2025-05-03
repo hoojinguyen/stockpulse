@@ -1,6 +1,91 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { ErrorMessage } from '../ui/error-message';
+import { StockTableSkeleton } from '../ui/skeleton';
+
+interface Stock {
+  symbol: string;
+  name: string;
+  price: string;
+  change: string;
+  percentChange: string;
+}
+
 export const StockTable = () => {
+  const [stocks, setStocks] = useState<Stock[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStocks = async () => {
+      try {
+        setIsLoading(true);
+        // TODO: Replace with actual API call
+        // const response = await fetch('/api/stocks');
+        // const data = await response.json();
+        // setStocks(data);
+
+        // Temporary mock data
+        setStocks([
+          {
+            symbol: 'VNM',
+            name: 'Vietnam Index',
+            price: '1,245.67',
+            change: '+12.45',
+            percentChange: '+1.01%',
+          },
+          {
+            symbol: 'VCB',
+            name: 'Vietcombank',
+            price: '89.50',
+            change: '+1.50',
+            percentChange: '+1.70%',
+          },
+          {
+            symbol: 'FPT',
+            name: 'FPT Corporation',
+            price: '75.20',
+            change: '-0.80',
+            percentChange: '-1.05%',
+          },
+          {
+            symbol: 'VIC',
+            name: 'Vingroup',
+            price: '102.30',
+            change: '+0.30',
+            percentChange: '+0.29%',
+          },
+          {
+            symbol: 'MSN',
+            name: 'Masan Group',
+            price: '94.70',
+            change: '-0.83',
+            percentChange: '-0.87%',
+          },
+          // ... other stocks
+        ]);
+      } catch (err) {
+        setError('Failed to load stock data');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStocks();
+  }, []);
+
+  // Render loading state
+  if (isLoading) {
+    return <StockTableSkeleton />;
+  }
+
+  // Render error state
+  if (error) {
+    return <ErrorMessage message={error} />;
+  }
+
   return (
     <section className="container">
       <div className="flex justify-between items-center mb-6">
@@ -36,43 +121,7 @@ export const StockTable = () => {
               </tr>
             </thead>
             <tbody>
-              {[
-                {
-                  symbol: 'VNM',
-                  name: 'Vietnam Index',
-                  price: '1,245.67',
-                  change: '+12.45',
-                  percentChange: '+1.01%',
-                },
-                {
-                  symbol: 'VCB',
-                  name: 'Vietcombank',
-                  price: '89.50',
-                  change: '+1.50',
-                  percentChange: '+1.70%',
-                },
-                {
-                  symbol: 'FPT',
-                  name: 'FPT Corporation',
-                  price: '75.20',
-                  change: '-0.80',
-                  percentChange: '-1.05%',
-                },
-                {
-                  symbol: 'VIC',
-                  name: 'Vingroup',
-                  price: '102.30',
-                  change: '+0.30',
-                  percentChange: '+0.29%',
-                },
-                {
-                  symbol: 'MSN',
-                  name: 'Masan Group',
-                  price: '94.70',
-                  change: '-0.83',
-                  percentChange: '-0.87%',
-                },
-              ].map((stock) => (
+              {stocks.map((stock) => (
                 <tr key={stock.symbol} className="border-b hover:bg-muted/30 transition-colors">
                   <td className="p-4 font-medium">{stock.symbol}</td>
                   <td className="p-4">{stock.name}</td>

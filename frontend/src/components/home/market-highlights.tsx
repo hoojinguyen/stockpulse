@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 interface MarketHighlight {
   symbol: string;
   name: string;
@@ -8,29 +10,86 @@ interface MarketHighlight {
   volume: number;
 }
 
-const topGainers: MarketHighlight[] = [
-  {
-    symbol: 'AAPL',
-    name: 'Apple Inc.',
-    price: 178.72,
-    change: 2.45,
-    volume: 52436789,
-  },
-  // Add more stocks here
+interface MarketVolume {
+  totalVolume: string;
+  totalValue: string;
+  advancingDeclining: string;
+}
+
+// Dummy data for development
+const dummyGainers: MarketHighlight[] = [
+  { symbol: 'AAPL', name: 'Apple Inc.', price: 150.25, change: 2.45, volume: 1000000 },
+  { symbol: 'MSFT', name: 'Microsoft Corp.', price: 290.5, change: 1.85, volume: 800000 },
+  { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 2800.75, change: 1.65, volume: 600000 },
 ];
 
-const topLosers: MarketHighlight[] = [
-  {
-    symbol: 'TSLA',
-    name: 'Tesla, Inc.',
-    price: 238.45,
-    change: -3.21,
-    volume: 31245678,
-  },
-  // Add more stocks here
+const dummyLosers: MarketHighlight[] = [
+  { symbol: 'META', name: 'Meta Platforms Inc.', price: 280.3, change: -2.15, volume: 900000 },
+  { symbol: 'NFLX', name: 'Netflix Inc.', price: 380.2, change: -1.95, volume: 700000 },
+  { symbol: 'AMZN', name: 'Amazon.com Inc.', price: 130.45, change: -1.75, volume: 500000 },
 ];
+
+const dummyVolume: MarketVolume = {
+  totalVolume: '1.2B shares',
+  totalValue: '$45.6B',
+  advancingDeclining: '245/180',
+};
 
 const MarketHighlights = () => {
+  const [topGainers, setTopGainers] = useState<MarketHighlight[]>([]);
+  const [topLosers, setTopLosers] = useState<MarketHighlight[]>([]);
+  const [marketVolume, setMarketVolume] = useState<MarketVolume>({
+    totalVolume: '',
+    totalValue: '',
+    advancingDeclining: '',
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMarketData = async () => {
+      try {
+        setIsLoading(true);
+        // Try to fetch from API first
+        try {
+          const [gainersRes, losersRes, volumeRes] = await Promise.all([
+            fetch('/api/market/top-gainers'),
+            fetch('/api/market/top-losers'),
+            fetch('/api/market/volume'),
+          ]);
+
+          const gainersData = await gainersRes.json();
+          const losersData = await losersRes.json();
+          const volumeData = await volumeRes.json();
+
+          setTopGainers(gainersData);
+          setTopLosers(losersData);
+          setMarketVolume(volumeData);
+        } catch (apiError) {
+          // If API fails, use dummy data
+          console.log('Using dummy data as API is not implemented yet');
+          setTopGainers(dummyGainers);
+          setTopLosers(dummyLosers);
+          setMarketVolume(dummyVolume);
+        }
+      } catch (error) {
+        console.error('Error fetching market data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMarketData();
+
+    // Optional: Set up polling to refresh data periodically
+    const interval = setInterval(fetchMarketData, 300000); // Refresh every 5 minutes
+
+    return () => clearInterval(interval);
+  }, []);
+
+  if (isLoading) {
+    return <div>Loading market data...</div>;
+  }
+
   return (
     <section className="container">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -52,17 +111,13 @@ const MarketHighlights = () => {
             </svg>
           </div>
           <ul className="space-y-3">
-            {[
-              { symbol: 'VCB', name: 'Vietcombank', change: '+1.70%' },
-              { symbol: 'VIC', name: 'Vingroup', change: '+0.29%' },
-              { symbol: 'VNM', name: 'Vinamilk', change: '+1.25%' },
-            ].map((stock) => (
+            {topGainers.map((stock) => (
               <li key={stock.symbol} className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">{stock.symbol}</div>
                   <div className="text-sm text-muted-foreground">{stock.name}</div>
                 </div>
-                <div className="text-green-500 font-medium">{stock.change}</div>
+                <div className="text-green-500 font-medium">+{stock.change.toFixed(2)}%</div>
               </li>
             ))}
           </ul>
@@ -85,17 +140,13 @@ const MarketHighlights = () => {
             </svg>
           </div>
           <ul className="space-y-3">
-            {[
-              { symbol: 'FPT', name: 'FPT Corporation', change: '-1.05%' },
-              { symbol: 'MSN', name: 'Masan Group', change: '-0.87%' },
-              { symbol: 'HPG', name: 'Hoa Phat Group', change: '-0.65%' },
-            ].map((stock) => (
+            {topLosers.map((stock) => (
               <li key={stock.symbol} className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">{stock.symbol}</div>
                   <div className="text-sm text-muted-foreground">{stock.name}</div>
                 </div>
-                <div className="text-red-500 font-medium">{stock.change}</div>
+                <div className="text-red-500 font-medium">{stock.change.toFixed(2)}%</div>
               </li>
             ))}
           </ul>
@@ -121,15 +172,15 @@ const MarketHighlights = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">Total Volume</div>
-              <div className="font-medium">1.2B shares</div>
+              <div className="font-medium">{marketVolume.totalVolume}</div>
             </div>
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">Total Value</div>
-              <div className="font-medium">$3.5B</div>
+              <div className="font-medium">{marketVolume.totalValue}</div>
             </div>
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">Advancing/Declining</div>
-              <div className="font-medium">156/124</div>
+              <div className="font-medium">{marketVolume.advancingDeclining}</div>
             </div>
           </div>
         </div>

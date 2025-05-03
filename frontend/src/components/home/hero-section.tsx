@@ -1,6 +1,58 @@
 'use client';
 
+import { useState } from 'react';
+
+interface TimeRange {
+  label: string;
+  value: '1D' | '1W' | '1M' | '1Y';
+}
+
+interface HeroContent {
+  title: string;
+  highlightedText: string;
+  description: string;
+  buttons: {
+    primary: string;
+    secondary: string;
+  };
+}
+
+interface MarketData {
+  indexName: string;
+  currentValue: number;
+  change: number;
+  changePercent: number;
+  isPositive: boolean;
+}
+
+const timeRanges: TimeRange[] = [
+  { label: '1D', value: '1D' },
+  { label: '1W', value: '1W' },
+  { label: '1M', value: '1M' },
+  { label: '1Y', value: '1Y' },
+];
+
+const heroContent: HeroContent = {
+  title: 'Smart Investing',
+  highlightedText: 'Made Simple',
+  description:
+    'StockPulse helps Vietnamese retail investors make informed decisions with real-time market data, curated news, and educational resources.',
+  buttons: {
+    primary: 'Get Started',
+    secondary: 'Learn More',
+  },
+};
+
 export const HeroSection = () => {
+  const [selectedRange, setSelectedRange] = useState<TimeRange['value']>('1W');
+  const [marketData] = useState<MarketData>({
+    indexName: 'VN-Index',
+    currentValue: 1245.67,
+    change: 12.45,
+    changePercent: 1.01,
+    isPositive: true,
+  });
+
   return (
     <section className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-background py-16">
       <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))] dark:bg-grid-black/10"></div>
@@ -8,19 +60,16 @@ export const HeroSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           <div className="space-y-6">
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Smart Investing <br />
-              <span className="text-primary">Made Simple</span>
+              {heroContent.title} <br />
+              <span className="text-primary">{heroContent.highlightedText}</span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-[600px]">
-              StockPulse helps Vietnamese retail investors make informed decisions with real-time
-              market data, curated news, and educational resources.
-            </p>
+            <p className="text-xl text-muted-foreground max-w-[600px]">{heroContent.description}</p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
-                Get Started
+                {heroContent.buttons.primary}
               </button>
               <button className="inline-flex h-11 items-center justify-center rounded-md border border-input bg-background px-8 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
-                Learn More
+                {heroContent.buttons.secondary}
               </button>
             </div>
           </div>
@@ -32,19 +81,23 @@ export const HeroSection = () => {
                   <div className="h-3 w-3 rounded-full bg-red-500"></div>
                   <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
                   <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                  <div className="ml-2 text-sm font-medium">VN-Index</div>
+                  <div className="ml-2 text-sm font-medium">{marketData.indexName}</div>
                 </div>
               </div>
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <div className="text-2xl font-bold">1,245.67</div>
-                    <div className="flex items-center text-green-500 text-sm">
+                    <div className="text-2xl font-bold">
+                      {marketData.currentValue.toLocaleString()}
+                    </div>
+                    <div
+                      className={`flex items-center text-sm ${marketData.isPositive ? 'text-green-500' : 'text-red-500'}`}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 20 20"
                         fill="currentColor"
-                        className="w-4 h-4 mr-1"
+                        className={`w-4 h-4 mr-1 ${!marketData.isPositive && 'rotate-180'}`}
                       >
                         <path
                           fillRule="evenodd"
@@ -52,22 +105,25 @@ export const HeroSection = () => {
                           clipRule="evenodd"
                         />
                       </svg>
-                      +12.45 (+1.01%)
+                      {marketData.change > 0 ? '+' : ''}
+                      {marketData.change} ({marketData.changePercent > 0 ? '+' : ''}
+                      {marketData.changePercent}%)
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <button className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80">
-                      1D
-                    </button>
-                    <button className="px-2 py-1 text-xs rounded bg-primary text-primary-foreground">
-                      1W
-                    </button>
-                    <button className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80">
-                      1M
-                    </button>
-                    <button className="px-2 py-1 text-xs rounded bg-muted hover:bg-muted/80">
-                      1Y
-                    </button>
+                    {timeRanges.map((range) => (
+                      <button
+                        key={range.value}
+                        onClick={() => setSelectedRange(range.value)}
+                        className={`px-2 py-1 text-xs rounded ${
+                          selectedRange === range.value
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted hover:bg-muted/80'
+                        }`}
+                      >
+                        {range.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div className="h-40 w-full bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/20 dark:to-green-800/10 rounded-lg relative overflow-hidden">
