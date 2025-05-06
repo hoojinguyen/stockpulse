@@ -10,6 +10,8 @@ export interface Stock {
   volume: string;
   marketCap: string;
   peRatio: string;
+  quantity?: number; // Optional field for watchlist
+  value?: number; // Optional field for watchlist
 }
 
 /**
