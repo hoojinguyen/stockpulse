@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './modules/auth';
+import { UsersModule } from './modules/users';
 
 /**
  * Root module of the application
@@ -33,7 +34,7 @@ import { AuthModule } from './modules/auth';
     
     // Import feature modules here
     AuthModule,
-    // UsersModule,
+    UsersModule,
     // WatchlistsModule,
     // PortfoliosModule,
     // StocksModule,
