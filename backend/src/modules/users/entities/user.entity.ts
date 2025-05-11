@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from 'typeorm';
 import { Watchlist } from '@modules/watchlists/entities/watchlist.entity';
 import { Portfolio } from '@modules/portfolios/entities/portfolio.entity';
+import { UserPreferences } from './user-preferences.entity';
 
 /**
  * User entity
@@ -45,4 +46,10 @@ export class User {
    */
   @OneToMany(() => Portfolio, (portfolio) => portfolio.user)
   portfolios: Portfolio[];
+
+  /**
+   * User's preferences
+   */
+  @OneToOne(() => UserPreferences, (preferences) => preferences.user)
+  preferences: UserPreferences;
 }
