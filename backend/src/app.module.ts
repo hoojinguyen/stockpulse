@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './modules/auth';
 import { UsersModule } from './modules/users';
+import { WatchlistsModule } from './modules/watchlists/watchlists.module';
 
 /**
  * Root module of the application
@@ -35,7 +36,7 @@ import { UsersModule } from './modules/users';
     // Import feature modules here
     AuthModule,
     UsersModule,
-    // WatchlistsModule,
+    WatchlistsModule,
     // PortfoliosModule,
     // StocksModule,
   ],
