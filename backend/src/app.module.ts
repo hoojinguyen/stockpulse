@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './modules/auth';
 import { UsersModule } from './modules/users';
 import { WatchlistsModule } from './modules/watchlists/watchlists.module';
+import { PortfoliosModule } from './modules/portfolios/portfolios.module';
 
 /**
  * Root module of the application
@@ -37,7 +38,7 @@ import { WatchlistsModule } from './modules/watchlists/watchlists.module';
     AuthModule,
     UsersModule,
     WatchlistsModule,
-    // PortfoliosModule,
+    PortfoliosModule,
     // StocksModule,
   ],
 })
