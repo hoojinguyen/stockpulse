@@ -79,4 +79,35 @@ export class UsersService {
     
     return user;
   }
+
+  /**
+   * Find a user by their ID
+   * 
+   * @param id The user ID
+   * @returns The user or null if not found
+   */
+  async findById(id: number): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { id } });
+  }
+
+  /**
+   * Update a user
+   * 
+   * @param id The user ID
+   * @param userData The updated user data
+   * @returns The updated user
+   */
+  async update(id: number, userData: Partial<User>): Promise<User> {
+    await this.usersRepository.update(id, userData);
+    return this.findById(id);
+  }
+
+  /**
+   * Find all users
+   * 
+   * @returns List of all users
+   */
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find();
+  }
 }

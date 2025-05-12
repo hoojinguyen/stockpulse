@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { Watchlist } from '@modules/watchlists/entities/watchlist.entity';
 import { Portfolio } from '@modules/portfolios/entities/portfolio.entity';
 import { UserPreferences } from './user-preferences.entity';
+import { WatchlistItem } from '@modules/watchlists/entities/watchlist-item.entity';
 
 /**
  * User entity
@@ -51,5 +52,12 @@ export class User {
    * User's preferences
    */
   @OneToOne(() => UserPreferences, (preferences) => preferences.user)
+  @JoinColumn()
   preferences: UserPreferences;
+
+  /**
+   * User's watchlist items
+   */
+  @OneToMany(() => WatchlistItem, watchlistItem => watchlistItem.user)
+  watchlistItems: WatchlistItem[];
 }
