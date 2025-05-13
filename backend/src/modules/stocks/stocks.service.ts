@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Stock } from './entities/stock.entity';
 import { StockQueryDto } from './dto/stock-query.dto';
+import { AlphaVantageService } from './providers/alpha-vantage.service';
 
 /**
  * Stocks service
@@ -14,6 +15,7 @@ export class StocksService {
   constructor(
     @InjectRepository(Stock)
     private stocksRepository: Repository<Stock>,
+    private alphaVantageService: AlphaVantageService,
   ) {}
 
   /**
@@ -50,13 +52,58 @@ export class StocksService {
    * @returns Stock details
    */
   async getStockBySymbol(symbol: string): Promise<Stock> {
-    const stock = await this.stocksRepository.findOne({ where: { symbol } });
-    
-    if (!stock) {
-      throw new NotFoundException(`Stock with symbol ${symbol} not found`);
+    try {
+      // Try to get real-time data from Alpha Vantage
+      const quoteData = await this.alphaVantageService.getStockQuote(symbol);
+      const overviewData = await this.alphaVantageService.getCompanyOverview(symbol);
+      
+      // Find or create stock in database
+      let stock = await this.stocksRepository.findOne({ where: { symbol } });
+      
+      if (!stock) {
+        stock = new Stock();
+        stock.symbol = symbol;
+      }
+      
+      // Update stock with real-time data
+      if (quoteData) {
+        stock.name = overviewData?.Name || stock.name || symbol;
+        stock.price = parseFloat(quoteData['05. price']) || stock.price;
+        stock.change = parseFloat(quoteData['09. change']) || stock.change;
+        stock.percentChange = parseFloat(quoteData['10. change percent']) || stock.percentChange;
+        stock.volume = quoteData['06. volume'] || stock.volume;
+        
+        if (overviewData) {
+          stock.market = overviewData.Exchange || stock.market;
+          stock.sector = overviewData.Sector || stock.sector;
+          stock.industry = overviewData.Industry || stock.industry;
+          stock.marketCap = overviewData.MarketCapitalization || stock.marketCap;
+          stock.peRatio = overviewData.PERatio || stock.peRatio;
+          stock.dividendYield = overviewData.DividendYield || stock.dividendYield;
+          stock.eps = overviewData.EPS || stock.eps;
+          stock.high52Week = overviewData['52WeekHigh'] || stock.high52Week;
+          stock.low52Week = overviewData['52WeekLow'] || stock.low52Week;
+        }
+        
+        // Save updated stock data
+        await this.stocksRepository.save(stock);
+      }
+      
+      if (!stock) {
+        throw new NotFoundException(`Stock with symbol ${symbol} not found`);
+      }
+      
+      return stock;
+    } catch (error) {
+      // Fallback to database if API fails
+      const stock = await this.stocksRepository.findOne({ where: { symbol } });
+      
+      if (!stock) {
+        throw new NotFoundException(`Stock with symbol ${symbol} not found`);
+      }
+      
+      return stock;
     }
-    
-    return stock;
   }
 
   /**
@@ -87,16 +134,38 @@ export class StocksService {
     // Verify the stock exists
     await this.getStockBySymbol(symbol);
     
-    // In a real implementation, this would fetch historical data from an external API
-    // or from a time-series database
-    return {
-      symbol,
-      period,
-      data: [
-        { date: '2023-01-01', open: 100, high: 105, low: 98, close: 103, volume: 1000000 },
-        { date: '2023-01-02', open: 103, high: 107, low: 102, close: 106, volume: 1200000 },
-        // More data points would be included here
-      ],
-    };
+    try {
+      // Map period to Alpha Vantage interval
+      let interval: 'daily' | 'weekly' | 'monthly' = 'daily';
+      
+      if (period === '1w' || period === 'weekly') {
+        interval = 'weekly';
+      } else if (period === '1m' || period === 'monthly') {
+        interval = 'monthly';
+      }
+      
+      // Fetch historical data from Alpha Vantage
+      const historicalData = await this.alphaVantageService.getTimeSeries(symbol, interval);
+      
+      return {
+        symbol,
+        period,
+        data: historicalData,
+      };
+    } catch (error) {
+      // Fallback to mock data if API fails
+      console.error(`Failed to fetch historical data for ${symbol}:`, error);
+      
+      return {
+        symbol,
+        period,
+        data: [
+          { date: '2023-01-01', open: 100, high: 105, low: 98, close: 103, volume: 1000000 },
+          { date: '2023-01-02', open: 103, high: 107, low: 102, close: 106, volume: 1200000 },
+          // More data points would be included here
+        ],
+        source: 'mock', // Indicate this is mock data
+      };
+    }
   }
 }

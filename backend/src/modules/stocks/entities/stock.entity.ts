@@ -74,6 +74,36 @@ export class Stock {
   sector: string;
 
   /**
+   * Industry
+   */
+  @Column({ nullable: true })
+  industry: string;
+
+  /**
+   * Dividend yield
+   */
+  @Column('float', { nullable: true })
+  dividendYield: number;
+
+  /**
+   * Earnings per share
+   */
+  @Column('float', { nullable: true })
+  eps: number;
+
+  /**
+   * 52-week high price
+   */
+  @Column('float', { nullable: true })
+  high52Week: number;
+
+  /**
+   * 52-week low price
+   */
+  @Column('float', { nullable: true })
+  low52Week: number;
+
+  /**
    * Last updated timestamp
    */
   @UpdateDateColumn()
