@@ -5,6 +5,7 @@ import { AuthModule } from './modules/auth';
 import { UsersModule } from './modules/users';
 import { WatchlistsModule } from './modules/watchlists/watchlists.module';
 import { PortfoliosModule } from './modules/portfolios/portfolios.module';
+import { StocksModule } from './modules/stocks';
 
 /**
  * Root module of the application
@@ -39,7 +40,7 @@ import { PortfoliosModule } from './modules/portfolios/portfolios.module';
     UsersModule,
     WatchlistsModule,
     PortfoliosModule,
-    // StocksModule,
+    StocksModule,
   ],
 })
 export class AppModule {}
